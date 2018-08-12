@@ -1,0 +1,34 @@
+---
+
+- hosts: server
+  gather_facts: no
+    
+  tasks:
+    - name: get the username
+      local_action: shell ls -al /etc/ansible/roles/common/keys |awk {'print $9'} |cut -f1 -d '.'|grep -v '^$' 
+      register: users
+
+    - name: print user
+      debug:
+        msg: "The user list is {{ item.stdout }}"
+        with_dict: "{{ users }}"
+  
+    - name: create user
+      user:
+        name: "{{ item }}"
+        create_home: yes
+        state:  present
+      with_items: "{{ users.stdout_lines }}"
+      become: yes
+
+    - name: create .ssh  directory
+      file: state=directory path=~/.ssh
+      become: yes
+      become_user: "{{ item }}"
+      with_items: "{{ users.stdout_lines }}"
+  
+    - name: copy public key
+      copy: src="/etc/ansible/roles/common/keys/{{ item }}.pub" dest=~/.ssh/authorized_keys mode=0600
+      become: yes
+      become_user: "{{ item }}"
+      with_items: "{{ users.stdout_lines }}"

@@ -1,0 +1,14 @@
+---
+
+- hosts: server
+  gather_facts: no
+
+  tasks:
+    - name: get the username
+      local_action: shell ls -l template |awk {'print $9'} |cut -f1 -d '.'|grep -v '^$' 
+      register: users
+
+    - name: create user
+      debug:
+        msg: " Item is {{ item.value }}"
+      with_dict: "{{ users }}"

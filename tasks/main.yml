@@ -1,0 +1,24 @@
+- name: Add groups
+  group: name={{ group_details[0] }} gid={{ group_details[1] }}
+- name: Add users
+  user: name={{ item.name }} comment="{{ item.fname }}" uid={{ item.uid }}
+             group={{ item.group }} groups=sudo home=/home/{{ item.name }} shell=/bin/bash
+             password='{{ item.epasswd }}' generate_ssh_key={{item.gen_ssh_key}}
+  with_items: users
+- name: Setup authorized_keys for the user
+  authorized_key: user={{ item.0.name }}
+                  key="{{ lookup('file', item.1) }}"
+  with_subelements:
+    - users
+    - authorized
+- name: Disable SSH password authentication
+  lineinfile: dest=/etc/ssh/sshd_config regexp='^PasswordAuthentication'
+                  insertafter="^#PasswordAuthentication yes" line='PasswordAuthentication no'
+  notify:
+    - restart sshd
+- name: Diable direct root login
+  lineinfile: dest=/etc/ssh/sshd_config regexp='^PermitRootLogin' line='PermitRootLogin no'
+  notify:
+    - restart sshd
+- name: Update apt cache
+  apt: update_cache=yes

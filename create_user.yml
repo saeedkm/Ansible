@@ -1,0 +1,33 @@
+---
+
+- hosts: server
+  gather_facts: no
+    
+  tasks:
+    - name: get the username
+      local_action: shell ls -l template |awk {'print $9'} |cut -f1 -d '.'|grep -v '^$' 
+      register: users
+
+    - name: print user
+      debug:
+        msg: "The user list is {{ item.stdout }}"
+        with_dict: "{{ users }}"
+  
+    - name: create user
+      user:
+        name: "{{ item }}"
+        create_home: yes
+        with_items: users
+  
+    - name: create folder
+      file:
+        path: /home/"{{ item }}"/.ssh
+        state: directory
+        with_items: users
+  
+    - name: copy public key
+      copy:
+        src: template/"{{ item }}".pub
+        dest: /home/"{{ item }}"/.ssh/authorized_keys
+        mode: 0600
+        with_items: users

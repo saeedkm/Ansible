@@ -1,0 +1,5 @@
+---
+# Handlers for common role
+
+- name: restart sshd
+  service: name=ssh state=restarted

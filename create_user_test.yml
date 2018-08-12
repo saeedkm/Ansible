@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  gather_facts: no
+
+  tasks:
+  - name: get the list of users
+    local_action: shell ls -al /elk_data/ansible/keys/ |awk '{print $9}'| cut -f1 -d '.'|grep -v '^$'
+    register: users
+  - name: test the list
+    debug:
+      msg: "{{ users.stdout_lines }}"
+  
+  - name:  add entry to sudoers
+    lineinfile:
+      path: /elk_data/test123
+      regexp: "^{{ item }}"
+      line: "{{ item }} ALL=(ALL)       NOPASSWD{{':'}} ALL"
+    with_items: "{{ users.stdout_lines }}"

@@ -1,0 +1,6 @@
+webserver ansible_ssh_host=127.0.0.1
+db1 ansible_ssh_host=10.10.51.15
+[masters]
+webserver
+[slaves]
+db1
