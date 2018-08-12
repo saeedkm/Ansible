@@ -14,15 +14,6 @@
     become: yes
     become_method: "sudo"
 
-  - name: Allow 'dbadmin' group to have passwordless sudo
-    lineinfile:
-      path: /etc/sudoers
-      state: present
-      regexp: '^%dbadmin'
-      insertafter: '^\[%wheel\]'
-      line: "%dbadmin    ALL=(ALL)       NOPASSWD{{':'}} ALL"
-      validate: 'visudo -cf %s'  
-
   - name: Ensure /etc/sudoers.d directory is present
     file: path=/etc/sudoers.d state=directory
 
